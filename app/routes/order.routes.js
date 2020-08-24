@@ -12,8 +12,9 @@ module.exports = app => {
     router.get("/", orders.findAll);
     //Update data Order
     router.put("/update/:id", orders.updateOrder);
-
-    router.post("/email", orders.editMail);
+    
+    //Send Email
+    router.post("/kirim-email", orders.sendEmail);
 
     router.put("/image-photo/:id/:title", orders.uploadImageOrder);
 

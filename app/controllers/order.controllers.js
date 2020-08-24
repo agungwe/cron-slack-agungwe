@@ -171,62 +171,41 @@ exports.updateOrder = async (req, res) => {
 
 
 //Edit Email
-exports.editMail = (req, res) => {
-    const subject = req.params.subject;
-    const isi = req.params.isi;
+exports.sendEmail = (req,res,next) => {
 
     module.exports = async nodemailer =>{
 
-    let configEmail, transporter, emailTarget, mail;
-
-        configEmail = {
-            service : 'gmail',
+    //let configEmail, transporter, emailTarget, mail;
+  
+    console.log(req.body)
+  
+    var transporter = nodemailer.createTransport({
+            service: 'gmail',
             auth    : {
                 user: 'bluut022@gmail.com',
                 pass: 'UptT1kUT'
             }
-        }
+    }); 
 
-    transporter = await nodemailer.createTransport(configEmail)
-    await sequelize.query("SELECT * from users WHERE id = ':id_user'",{replacements:{ id_user : 1},type: QueryTypes.SELECT})
-        .then(async (users)=>{
-                    for (const key in users) {
-                        if (users.hasOwnProperty(key)) {
-                            let month = ''
-                            const today      = new Date();
-                            const year       = today.getFullYear();
-                            const mes        = today.getMonth()+1;
-                            if (mes.toString.length == 1){
-                                month = '0'+mes
-                            }else{
-                                month = mes
-                            }
-                            const day        = today.getDate()-1;
-                            const time_start = year+"-"+month+"-"+day;
-                            const user = users[key];
-                            await  sequelize.query("SELECT firstname, tanggal, SUM(harga) as total_harga FROM orders JOIN users ON users.id = orders.id_user WHERE id_user = :id_user AND tanggal = :tanggal",
-                            {
-                                replacements: {id_user:user.id,
-                                               tanggal:time_start},
-                                type: QueryTypes.SELECT
-                            }).then((total_harga)=>{
-                                 mail = {
-                                    to:user.email,
-                                    from: configEmail.auth.user,
-                                    subject: subject,
-                                    html: isi `Berikut kami kirimkan total transaksi Anda pada:
-                                            <p>Tanggal: ${total_harga[0].tanggal}</p> 
-                                            <p>Sebesar: Rp ${total_harga[0].total_harga}.</p>
-                                            
-                                            <p>Demikian. Terima kasih</p>`
-                                                                                        
-                                }
-                                transporter.sendMail(mail)
-                                slack.sendMessage("Admin","tik","Nama : "+`${total_harga[0].firstname}`+" | Total Belanja (Rp) : "+`${total_harga[0].total_harga}`);
-                            })
-                       }
-                    }
-        })
-    
+    var mailOptions = {
+        from: transporter.auth.email,//replace with your email
+        to: 'agoenkwe@gmail.com',//replace with your email
+        subject: `Contact name: ${req.body.name}`,
+        html:`<h1>Contact details</h1>
+            <h2> name:${req.body.name} </h2><br>
+            <h2> email:${req.body.email} </h2><br>
+            <h2> phonenumber:${req.body.phonenumber} </h2><br>
+            <h2> message:${req.body.message} </h2><br>`
+    };
+  
+    transporter.sendMail(mailOptions, function(error, info){
+        if (error) {
+        console.log(error);
+        res.send('error') // if error occurs send error as response to client
+        } else {
+        console.log('Email sent: ' + info.response);
+        res.send('Sent Successfully')//if mail is sent successfully send Sent successfully as response
+        }
+    });
     }
-}
+};
